@@ -42,7 +42,6 @@ plan boltello::add_nodes(
   $autosign_query = run_command('/opt/puppetlabs/bin/puppet config print autosign --section master',
     get_target($ca_server),
     'discover autosign features',
-    _catch_errors => true
   )
 
   $autosign = $autosign_query.first.value['stdout'].strip() ? {
