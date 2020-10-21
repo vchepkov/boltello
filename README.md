@@ -54,10 +54,12 @@ Boltello provides the three pre-defined profiles as a means to diversify the top
 
 For further reading:
   * [Puppetserver Support for X-Client-DN and X-Client-Verify Headers](https://tickets.puppetlabs.com/browse/SERVER-18)
+  * [Cannot decode OpenSSL-formatted X-Client-DN header](https://tickets.puppetlabs.com/browse/SERVER-213)
+  * [Cannot decode Apache-formatted X-Client-Cert header](https://tickets.puppetlabs.com/browse/SERVER-217)
   * [Puppetserver External SSL termination](https://puppet.com/docs/puppetserver/6.12.2/external_ssl_termination.html)
   * [Puppetserver request_handler_core.clj](https://github.com/puppetlabs/puppetserver/blob/6.x/src/clj/puppetlabs/services/request_handler/request_handler_core.clj)
 
-If you discover a working Apache vhost definition that handles SSL client headers as well as Nginx, please post the solution [here](https://github.com/superfantasticawesome/boltello/issues). 
+If you discover a working Apache vhost definition that handles SSL client headers better than Nginx, please post the solution [here](https://github.com/superfantasticawesome/boltello/issues). 
 
 ## Features
 
