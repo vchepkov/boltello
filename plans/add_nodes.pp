@@ -26,9 +26,9 @@ plan boltello::add_nodes(
   $ca_query = run_command('/opt/puppetlabs/bin/puppet config print ca_server',
     get_target($server),
     'locate puppet certificate authority',
-  ).first
+  )
 
-  $ca_server = $ca_query.value['stdout'] 
+  $ca_server = $ca_query.first.value['stdout'] 
 
   # Agents only
   if get_target($server) in $nodes {
@@ -43,9 +43,9 @@ plan boltello::add_nodes(
     get_target($ca_server),
     'discover autosign features',
     _catch_errors => true
-  ).first
+  )
 
-  $autosign = $autosign_query.value['stdout'].strip() ? {
+  $autosign = $autosign_query.first.value['stdout'].strip() ? {
     /(autosign|conf)/ => 'conf',
     /true/            => 'simple',
     default           => 'off'
@@ -92,9 +92,9 @@ plan boltello::add_nodes(
       $node,
       'get ssldir location',
       _run_as       => 'root',
-    ).first
+    )
 
-    $ssl_dir = $puppet_ssl_query.value['stdout'].strip()
+    $ssl_dir = $puppet_ssl_query.first.value['stdout'].strip()
 
     $private_key_exists = run_command("/bin/test -f ${ssl_dir}/private_keys/${node.name}.pem",
       $node,
@@ -120,9 +120,9 @@ plan boltello::add_nodes(
         $node,
         'get server identity',
         _run_as       => 'root',
-      ).first
+      )
 
-      $configured_server = $puppet_server_query.value['stdout'].strip()
+      $configured_server = $puppet_server_query.first.value['stdout'].strip()
 
       if $configured_server != get_target($server).name {
         run_command("${puppet} config set server ${server} --section main",
