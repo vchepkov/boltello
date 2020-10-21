@@ -1,0 +1,143 @@
+---
+'boltello_builder::message': "proxy server"
+'boltello_builder::classes':
+  - "boltello_builder::certs"
+  - "boltello_builder::foreman_proxy"
+  - "boltello_builder::pulp"
+  - "boltello_builder::puppet"
+  - "boltello_builder::reverse_proxy"
+  - "boltello_builder::hiera"
+  - "boltello_builder::r10k"
+'certs::generate': false
+'certs::tar_file': '/root/%{trusted.certname}-certs.tar'
+'certs::cname': "%{alias('boltello::subject_alt_names')}"
+'certs::foreman_proxy_content::foreman_proxy_cname': "%{alias('boltello::subject_alt_names')}"
+'foreman_proxy::trusted_hosts':
+  - "%{alias('boltello::katello_server')}"
+  - "%{trusted.certname}"
+'foreman_proxy::puppet': true
+'foreman_proxy::manage_puppet_group': true
+'foreman_proxy::puppetca': false
+'foreman_proxy::plugin::pulp:enabled': false
+'foreman_proxy::plugin::pulp::pulpnode_enabled': true
+'foreman_proxy::plugin::remote_execution::ssh::enabled': "%{alias('boltello::enable_remote_execution')}"
+'foreman_proxy::plugin::remote_execution::ssh::listen_on': https
+'foreman_proxy::plugin::remote_execution::ssh::generate_keys': true
+'foreman_proxy::plugin::remote_execution::ssh::install_key': true
+'foreman_proxy::plugin::remote_execution::ssh::ssh_identity_dir': "%{alias('boltello::ssh_identity_dir')}"
+'foreman_proxy::plugin::remote_execution::ssh::ssh_identity_file': "%{alias('boltello::ssh_identity_file')}"
+'foreman_proxy::plugin::remote_execution::ssh::ssh_keygen': /usr/bin/ssh-keygen
+'foreman_proxy::plugin::remote_execution::ssh::local_working_dir': /var/tmp
+'foreman_proxy::plugin::remote_execution::ssh::remote_working_dir': /var/tmp
+'foreman_proxy::plugin::remote_execution::ssh::ssh_kerberos_auth': false
+'foreman_proxy::plugin::pulp::enabled': false
+'foreman_proxy::plugin::pulp::listen_on': https
+'foreman_proxy::plugin::pulp::pulpnode_enabled': true
+'foreman_proxy::plugin::pulp::pulpcore_enabled': false
+'foreman_proxy::plugin::pulp::pulpcore_api_url': "https://%{trusted.certname}"
+'foreman_proxy::plugin::pulp::pulpcore_content_url': "https://%{trusted.certname}/pulp/content"
+'foreman_proxy::plugin::pulp::pulpcore_mirror': false
+'foreman_proxy::plugin::pulp::version': null
+'foreman_proxy::plugin::pulp::pulp_url': "https://%{trusted.certname}/pulp"
+'foreman_proxy::plugin::pulp::pulp_dir': /var/lib/pulp
+'foreman_proxy::plugin::pulp::pulp_content_dir': /var/lib/pulp/content
+'foreman_proxy::plugin::pulp::puppet_content_dir': null
+'foreman_proxy::plugin::pulp::mongodb_dir': /var/lib/mongodb
+'foreman_proxy_content::puppet': true
+'foreman_proxy_content::reverse_proxy': true
+'foreman_proxy_content::proxy_pulp_isos_to_pulpcore': false
+'foreman_proxy_content::proxy_pulp_yum_to_pulpcore': false
+'foreman_proxy_content::qpid_router': true
+'foreman_proxy_content::qpid_router_hub_addr': null
+'foreman_proxy_content::qpid_router_hub_port': 5646
+'foreman_proxy_content::qpid_router_agent_addr': null
+'foreman_proxy_content::qpid_router_agent_port': 5647
+'foreman_proxy_content::qpid_router_broker_addr': localhost
+'foreman_proxy_content::qpid_router_broker_port': 5671
+'foreman_proxy_content::qpid_router_logging_level': info+
+'foreman_proxy_content::qpid_router_logging': syslog
+'foreman_proxy_content::qpid_router_logging_path': /var/log/qdrouterd
+'foreman_proxy_content::qpid_router_ssl_ciphers': null
+'foreman_proxy_content::qpid_router_ssl_protocols': null
+'foreman_proxy_content::qpid_router_sasl_mech': PLAIN
+'foreman_proxy_content::qpid_router_sasl_username': "%{alias('boltello::qpid_router_sasl_username')}"
+'foreman_proxy_content::qpid_router_sasl_password': "%{alias('boltello::qpid_router_sasl_password')}"
+'foreman_proxy_content::manage_broker': true
+'foreman_proxy_content::pulp_master': false
+'puppet::server': true
+'puppet::ca_server': "%{alias('boltello::katello_server')}"
+'puppet::puppetmaster': "%{trusted.certname}"
+'puppet::server_admin_api_whitelist':
+  - localhost
+  - "%{trusted.certname}"
+'puppet::server_port': 18140
+'puppet::server_ca': false
+'puppet::server_http': true
+'puppet::server_foreman': false
+'puppet::server_allow_header_cert_info': true
+'puppet::dns_alt_names': "%{alias('boltello::subject_alt_names')}"
+'nginx::daemon_user': "nginx"
+'nginx::server_purge': true
+'nginx::confd_purge': true
+'nginx::proxy_buffer_size': '16k'
+'nginx::proxy_buffers': '8 32k'
+'nginx::proxy_busy_buffers_size': '64k'
+'nginx::proxy_max_temp_file_size': '64k'
+'nginx::proxy_read_timeout': '120'
+'nginx::nginx_upstreams':
+  'puppetserver-reverse-proxy':
+    ensure: present
+    members:
+      "https://%{lookup('boltello::katello_server')}:8140":
+        server: "%{alias('boltello::katello_server')}"
+        port: 8140
+'nginx::nginx_servers':
+  'puppetserver-reverse-proxy':
+    ensure: present
+    use_default_location: false
+    server_name:
+      - puppetserver-reverse-proxy
+    listen_port: 8140
+    ssl: true
+    ssl_cert: "/etc/puppetlabs/puppet/ssl/certs/%{trusted.certname}.pem"
+    ssl_key: "/etc/puppetlabs/puppet/ssl/private_keys/%{trusted.certname}.pem"
+    ssl_client_cert: "/etc/puppetlabs/puppet/ssl/certs/ca.pem"
+    ssl_crl: "/etc/puppetlabs/puppet/ssl/crl.pem"
+    ssl_port: 8140
+    ssl_verify_client: "optional"
+    ssl_verify_depth: 3
+    ssl_ciphers: 'HIGH:!aNULL:!MD5'
+    access_log: "/var/log/nginx/puppet_access.log"
+    error_log: "/var/log/nginx/puppet_error.log"
+    locations:
+      'puppet-ca':
+        ensure: present
+        location: "/puppet-ca/"
+        proxy: "https://%{lookup('boltello::katello_server')}:8140"
+        server: puppetserver-reverse-proxy
+        proxy_set_header:
+          - 'Host            $host'
+          - 'X-Client-Verify $ssl_client_verify'
+          - 'X-SSL-Subject   $ssl_client_s_dn_legacy'
+          - 'X-SSL-Issuer    $ssl_client_i_dn_legacy'
+          - 'X-Client-DN     $ssl_client_s_dn_legacy'
+          - 'X-Client-Cert   $ssl_client_escaped_cert'
+      'reverse-proxy':
+        ensure: present
+        location: '/'
+        proxy: 'http://%{facts.networking.fqdn}:8139'
+        proxy_redirect: 'off'
+        server: puppetserver-reverse-proxy
+        proxy_set_header:
+          - 'Host            $host'
+          - 'X-Client-Verify $ssl_client_verify'
+          - 'X-SSL-Subject   $ssl_client_s_dn_legacy'
+          - 'X-SSL-Issuer    $ssl_client_i_dn_legacy'
+          - 'X-Client-DN     $ssl_client_s_dn_legacy'
+          - 'X-Client-Cert   $ssl_client_escaped_cert'
+      'install-agent':
+        ensure: present
+        location: "/install"
+        www_root: "/usr/share/nginx"
+        server : puppetserver-reverse-proxy
+        proxy_set_header: []
