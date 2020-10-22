@@ -79,6 +79,7 @@ plan boltello::katello_prep(
         run_command("/bin/yum -y localinstall ${package['source']}",
           $nodes,
           "ensure ${package['name']} package",
+          _catch_errors => true,
         )
       }
     }
@@ -87,6 +88,7 @@ plan boltello::katello_prep(
     run_command("/bin/rpm -q puppet-bolt || /bin/yum -y install puppet-bolt",
       $nodes,
       'ensure puppet-bolt package',
+      _catch_errors => true,
     )
 
     $katello_packages_check = run_command("/bin/rpm -q ${katello_packages.join(' ')} ${selinux_packages.join(' ')}",
@@ -99,6 +101,7 @@ plan boltello::katello_prep(
       run_command('/bin/yum -y install centos-release-scl-rh',
         $nodes,
         'ensure centos scl release package',
+        _catch_errors => true,
       )
 
       run_command('yum -y update',
@@ -109,11 +112,13 @@ plan boltello::katello_prep(
       run_command("/bin/yum -y install ${katello_packages.join(' ')}",
         $nodes,
         'ensure katello packages',
+         _catch_errors => true,
       )
 
       run_command("/bin/yum -y install ${selinux_packages.join(' ')}",
         $nodes,
         'ensure selinux packages',
+        _catch_errors => true,
       )
     }
 
@@ -136,6 +141,7 @@ plan boltello::katello_prep(
       run_command("/bin/yum -y install puppetserver-${puppetserver_version} --enablerepo puppet${puppet_major_version}",
         $nodes,
         'ensure puppetserver package',
+        _catch_errors => true,
       )
     }
 
@@ -176,21 +182,25 @@ plan boltello::katello_prep(
         run_command("/bin/yum -y install rh-redis5-redis",
           $nodes,
           'ensure redis5 packages',
+          _catch_errors => true,
         )
 
         run_command("/bin/yum -y install ${postgresql_prefix}postgresql-server ${postgresql_prefix}postgresql-contrib",
           $nodes,
           'ensure postgresql-server packages',
+          _catch_errors => true,
         )
 
         run_command("/bin/yum -y install ${postgresql_prefix}postgresql-evr --enablerepo foreman-infra-el7",
           $nodes,
           'ensure postgresql-server-evr package',
+          _catch_errors => true,
         )
 
         run_command("/bin/scl enable ${postgresql_prefix}postgresql bash || :",
           $nodes,
           'enable postgresql-server',
+           _catch_errors => true,
         )
 
         $new_rpm_version_query = run_command("/bin/rpm -qa --queryformat '%{version}' ${postgresql_prefix}postgresql",
@@ -226,6 +236,7 @@ plan boltello::katello_prep(
             run_command("/bin/yum -y install ${package}",
               $nodes,
               "ensure ${package} package",
+              _catch_errors => true,
             )
           }
         }
