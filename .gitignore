@@ -1,6 +1,5 @@
+modules/
+!modules/boltello_builder/
 **/.DS_Store
 **/.resource_types
 **/*.log
-modules/files/boltello
-modules/files/certs
-
