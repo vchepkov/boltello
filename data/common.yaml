@@ -53,7 +53,7 @@
 'certs::pki_dir': /etc/pki/katello
 'certs::ssl_build_dir': /root/ssl-build
 'certs::user': root
-'certs::group': root
+'certs::group': foreman
 'certs::default_ca_name': katello-default-ca
 'certs::server_ca_name': katello-server-ca
 'certs::regenerate': false
